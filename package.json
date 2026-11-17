@@ -3,13 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "workspaces": [
-    "web"
+    "web",
+    "server"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=@nextmusic/web",
-    "build": "npm run build --workspace=@nextmusic/web",
-    "typecheck": "npm run typecheck --workspace=@nextmusic/web",
-    "preview": "npm run preview --workspace=@nextmusic/web",
-    "test": "npm run test --workspace=@nextmusic/web"
+    "dev": "npm run dev -w @nextmusic/server & npm run dev -w @nextmusic/web",
+    "build": "npm run build -w @nextmusic/web",
+    "start": "npm run start -w @nextmusic/server",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test -w @nextmusic/web"
   }
 }

@@ -1,6 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-// ===== Theme and Styling =====
-// Keep the approved monochrome palette and typography consistent across shared controls.
+
 export const theme = createTheme({
   palette: {
     mode: "light",
@@ -9,21 +8,21 @@ export const theme = createTheme({
     text: { primary: "#171717", secondary: "#595959" },
     background: { default: "#FFFFFF", paper: "#FFFFFF" },
   },
-  shape: { borderRadius: 4 },
+  shape: { borderRadius: 8 },
   typography: {
-    fontFamily: "Arial, Helvetica, system-ui, sans-serif",
-    h1: { fontWeight: 700, letterSpacing: "-0.055em" },
-    h2: { fontWeight: 700, letterSpacing: "-0.04em" },
-    h3: { fontWeight: 700, letterSpacing: "-0.03em" },
+    fontFamily: '"Inter", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif',
+    h1: { fontWeight: 800, letterSpacing: "-0.045em" },
+    h2: { fontWeight: 700, letterSpacing: "-0.03em" },
+    h3: { fontWeight: 700, letterSpacing: "-0.02em" },
+    h4: { fontWeight: 800, letterSpacing: "-0.03em" },
     button: { textTransform: "none", fontWeight: 600 },
   },
   components: {
     MuiButton: {
-      styleOverrides: { root: { borderRadius: 4, minHeight: 44 } },
+      defaultProps: { disableElevation: true },
+      styleOverrides: { root: { borderRadius: 8, minHeight: 44 } },
     },
-    MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 4 } } },
-    // ===== Keyboard Focus =====
-    // Keep a visible outline on links, buttons and native audio controls.
+    MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 8 } } },
     MuiCssBaseline: {
       styleOverrides: {
         body: { margin: 0 },

@@ -10,8 +10,6 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { runSearch } from "./features/search/searchSlice";
 import type { MusicItem } from "./features/search/types";
 
-// ===== Optional Audio Player =====
-// Keep player controls out of the initial page bundle until a preview is requested.
 const PreviewPlayer = lazy(() => import("./features/player/PreviewPlayer").then((module) => ({ default: module.PreviewPlayer })));
 
 export default function App() {
@@ -19,49 +17,34 @@ export default function App() {
   const status = useAppSelector((s) => s.search.status);
   const query = useAppSelector((s) => s.search.query);
   const [preview, setPreview] = useState<MusicItem | null>(null);
-  const current = useRef<{ abort: () => void } | null>(null);
-  const previewTrigger = useRef<HTMLElement | null>(null);
+  const request = useRef<{ abort: () => void } | null>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
 
-  // ===== Audio Preview Focus =====
-  // Return keyboard users to the selected song after the fixed player closes.
+  useEffect(() => () => request.current?.abort(), []);
+
   const openPreview = (item: MusicItem) => {
-    const label = `Preview ${item.title} by ${item.artist}`;
-    const active = document.activeElement;
-    previewTrigger.current = active instanceof HTMLButtonElement && active.getAttribute("aria-label") === label
-      ? active
-      : Array.from(document.querySelectorAll<HTMLButtonElement>("button[aria-label]"))
-        .find((button) => button.getAttribute("aria-label") === label) ?? null;
+    if (document.activeElement instanceof HTMLElement) returnFocus.current = document.activeElement;
     setPreview(item);
   };
+
   const closePreview = () => {
     setPreview(null);
-    const target = previewTrigger.current;
-    previewTrigger.current = null;
-    if (target?.isConnected) target.focus({ preventScroll: true });
-    else document.getElementById("music-query")?.focus({ preventScroll: true });
+    const target = returnFocus.current?.isConnected ? returnFocus.current : document.getElementById("music-query");
+    returnFocus.current = null;
+    target?.focus({ preventScroll: true });
   };
 
-  // ===== Search Lifecycle =====
-  // Cancel the previous request and stop its audio when a new search starts.
   const search = (term: string) => {
-    current.current?.abort();
-    setPreview(null);
-    previewTrigger.current = null;
-    current.current = dispatch(runSearch(term));
+    request.current?.abort();
+    request.current = dispatch(runSearch(term));
   };
 
-  useEffect(
-    () => () => {
-      current.current?.abort();
-    },
-    [],
-  );
   return (
     <Box sx={{ minHeight: "100vh", overflowX: "hidden" }}>
       <Header />
       <Box component="main" id="main-content" tabIndex={-1}>
-        <SearchHero onSearch={search} loading={status === "loading"} />
-        <SearchResults onRetry={() => search(query)} onPreview={openPreview} />
+        <SearchHero onSearch={search} onPreview={openPreview} playingId={preview?.id} loading={status === "loading"} />
+        <SearchResults onSearch={search} onRetry={() => search(query)} onPreview={openPreview} playingId={preview?.id} />
       </Box>
       <Box component="footer" id="about" sx={{ borderTop: "1px solid #dddddd", py: 3, mt: 2 }}>
         <Container maxWidth="xl">
@@ -69,11 +52,12 @@ export default function App() {
             <Typography fontWeight={800}>
               NextMusic
               <Box component="span" sx={{ fontWeight: 400, color: "#595959" }}>
+                {" "}
                 · Discover more.
               </Box>
             </Typography>
             <Typography fontSize={13} color="text.secondary">
-              Search artists, albums and songs. Music data and artwork provided by Apple iTunes.
+              Search artists, albums and songs. Music data, artwork and previews provided by Apple iTunes.
             </Typography>
           </Stack>
         </Container>
