@@ -52,7 +52,11 @@ export default function App() {
           </Stack>
         </Container>
       </Box>
-      {preview && <Suspense fallback={<p role="status">Loading audio player…</p>}><PreviewPlayer item={preview} onClose={() => setPreview(null)} /></Suspense>}
+      {preview && (
+        <Suspense fallback={<p role="status">Loading audio player…</p>}>
+          <PreviewPlayer item={preview} onClose={() => setPreview(null)} />
+        </Suspense>
+      )}
     </Box>
   );
 }
