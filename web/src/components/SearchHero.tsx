@@ -18,7 +18,6 @@ import type { MusicItem } from "../features/search/types";
 interface Props {
   onSearch: (q: string) => void;
   loading: boolean;
-  initial?: string;
 }
 
 const features = [
@@ -27,12 +26,14 @@ const features = [
   { title: "Songs", description: "Search and discover songs across genres.", Icon: GraphicEqRounded },
 ];
 
-export function SearchHero({ onSearch, loading, initial = "" }: Props) {
-  const [value, setValue] = useState(initial);
+export function SearchHero({ onSearch, loading }: Props) {
+  const [value, setValue] = useState("");
   const [artwork, setArtwork] = useState<MusicItem[]>([]);
   const [artworkStatus, setArtworkStatus] = useState<"loading" | "success" | "error">("loading");
   const [artworkAttempt, setArtworkAttempt] = useState(0);
 
+  // ===== Featured Music =====
+  // Cancel abandoned requests so retries and page changes cannot replace newer artwork.
   useEffect(() => {
     const controller = new AbortController();
     setArtworkStatus("loading");
@@ -47,6 +48,8 @@ export function SearchHero({ onSearch, loading, initial = "" }: Props) {
       });
     return () => controller.abort();
   }, [artworkAttempt]);
+  // ===== Search Submission =====
+  // Both Enter and the Search button submit the same trimmed query.
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (value.trim() && !loading) onSearch(value.trim());
@@ -164,18 +167,6 @@ export function SearchHero({ onSearch, loading, initial = "" }: Props) {
           ))}
         </Box>
       </Container>
-      <svg className="landing-wave" viewBox="0 0 1440 130" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <defs>
-          <linearGradient id="landing-wave-gradient">
-            <stop stopColor="#D9A6FF" />
-            <stop offset=".35" stopColor="#8BF1DB" />
-            <stop offset=".65" stopColor="#FFFA70" />
-            <stop offset="1" stopColor="#CBFFF0" />
-          </linearGradient>
-        </defs>
-        <path d="M0 12C180 30 210 160 420 100S650 35 800 90 1100 180 1440 40V130H0Z" fill="url(#landing-wave-gradient)" />
-        <path d="M0 95C220 170 400 170 600 90S900 30 1080 100 1300 150 1440 85V130H0Z" fill="#B7F9D8" opacity=".55" />
-      </svg>
     </Box>
   );
 }

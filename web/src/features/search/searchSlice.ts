@@ -1,10 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { searchMusic } from "../../services/musicApi";
 import type { MusicItem, SearchStatus } from "./types";
+// ===== Search Requests =====
+// Redux Thunk connects the API result to a single loading, success, empty or error state.
 export const runSearch = createAsyncThunk("search/run", async (term: string, { signal }) => ({
   term,
   items: await searchMusic(term, signal),
 }));
+// ===== Search State =====
+// Keep fetched items separate from how many the user has revealed.
 interface SearchState {
   query: string;
   items: MusicItem[];
@@ -25,16 +29,17 @@ const slice = createSlice({
   name: "search",
   initialState,
   reducers: {
+    // ===== Progressive Result Visibility =====
+    // Reveal ten more fetched items and stop at the response boundary.
     revealMore(s) {
       s.visibleCount = Math.min(s.items.length, s.visibleCount + 10);
     },
     resetVisibleCount(s) {
       s.visibleCount = 10;
     },
-    resetSearch() {
-      return initialState;
-    },
   },
+  // ===== Stale Request Protection =====
+  // Only the latest request may replace results or report an error.
   extraReducers: (b) =>
     b
       .addCase(runSearch.pending, (s, a) => {
@@ -58,5 +63,5 @@ const slice = createSlice({
         s.activeRequestId = null;
       }),
 });
-export const { revealMore, resetVisibleCount, resetSearch } = slice.actions;
+export const { revealMore, resetVisibleCount } = slice.actions;
 export default slice.reducer;

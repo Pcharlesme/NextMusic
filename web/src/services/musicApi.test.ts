@@ -23,6 +23,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.resetAllMocks();
 });
@@ -39,10 +40,10 @@ describe("live catalogue service", () => {
       expect(url.searchParams.get("media")).toBe("music");
       expect(url.searchParams.get("country")).toBe("gb");
       expect(url.searchParams.get("limit")).toBe("50");
-      expect(options?.signal).toBe(signal);
+      expect(options?.signal).toBeInstanceOf(AbortSignal);
       return url.searchParams.get("entity");
     });
-    expect(entities).toEqual(["musicArtist", "album", "song"]);
+    expect(entities).toEqual(["album", "song", "musicArtist"]);
   });
 
   it("normalizes real response fields and deduplicates type-prefixed IDs", async () => {
@@ -52,10 +53,10 @@ describe("live catalogue service", () => {
       { wrapperType: "collection", collectionId: song.trackId, collectionName: "25", artistName: "Adele" },
     ]);
     const results = await searchMusic("Adele");
-    expect(results.map((item) => item.id)).toEqual([`song:${song.trackId}`, `artist:${song.trackId}`, `album:${song.trackId}`]);
-    expect(results[0]).toMatchObject({ title: "Hello", artist: "Adele", kind: "song", detail: "4:55", artwork: song.artworkUrl100 });
-    expect(results[0].previewUrl).toBeUndefined();
-    expect(results[2].artwork).toBe("");
+    expect(results.map((item) => item.id)).toEqual([`album:${song.trackId}`, `song:${song.trackId}`, `artist:${song.trackId}`]);
+    expect(results[1]).toMatchObject({ title: "Hello", artist: "Adele", kind: "song", detail: "4:55", artwork: song.artworkUrl100 });
+    expect(results[1].previewUrl).toBeUndefined();
+    expect(results[0].artwork).toBe("");
   });
 
   it("ignores malformed items, unsupported media and unsafe external links", async () => {
@@ -99,5 +100,68 @@ describe("live catalogue service", () => {
     await expect(searchMusic("  ")).rejects.toThrow("search term");
     await expect(searchMusic("a".repeat(201))).rejects.toThrow("search term");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+// ===== Request Lifetime Regression Tests =====
+// Pending fetches reject when cancelled, matching browser fetch rather than ignoring the signal.
+function pendingRequests() {
+  fetchMock.mockImplementation((_input, options) => new Promise<Response>((_resolve, reject) => {
+    const signal = options?.signal;
+    const cancel = () => reject(new DOMException("Aborted", "AbortError"));
+    if (signal?.aborted) cancel();
+    else signal?.addEventListener("abort", cancel, { once: true });
+  }));
+}
+
+describe("request lifetime and album-first ordering", () => {
+  it("leads with albums and available covers without dropping artists or songs", async () => {
+    respond([
+      song,
+      { wrapperType: "artist", artistId: 1, artistName: "Adele" },
+      { wrapperType: "collection", collectionId: 1, collectionName: "Missing cover" },
+      { wrapperType: "collection", collectionId: 2, collectionName: "25", artworkUrl100: song.artworkUrl100 },
+    ]);
+    expect((await searchMusic("Adele")).map((item) => item.title)).toEqual(["25", "Missing cover", "Hello", "Adele"]);
+  });
+
+  it("discards non-finite duration metadata", async () => {
+    // JSON cannot represent Infinity; emulate a malformed decoded response at the API boundary.
+    fetchMock.mockImplementation(async () => ({ ok: true, json: async () => ({ results: [{ ...song, trackTimeMillis: Infinity }] }) }) as Response);
+    expect((await searchMusic("Adele"))[0].detail).toBeUndefined();
+  });
+
+  it("times out search and featured artwork and cancels their requests", async () => {
+    vi.useFakeTimers();
+    pendingRequests();
+    const search = expect(searchMusic("Adele")).rejects.toThrow("too long");
+    const featured = expect(getFeaturedMusic()).rejects.toThrow("too long");
+    await vi.advanceTimersByTimeAsync(15_000);
+    await Promise.all([search, featured]);
+    expect(fetchMock.mock.calls.every(([, options]) => options?.signal?.aborted)).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("forwards user cancellation to every entity request", async () => {
+    pendingRequests();
+    const controller = new AbortController();
+    const rejected = expect(searchMusic("Adele", controller.signal)).rejects.toMatchObject({ name: "AbortError" });
+    controller.abort();
+    await rejected;
+    expect(fetchMock.mock.calls.every(([, options]) => options?.signal?.aborted)).toBe(true);
+  });
+
+  it("does not start requests when the caller already cancelled", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expect(searchMusic("Adele", controller.signal)).rejects.toMatchObject({ name: "AbortError" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("cancels sibling requests when one entity fails", async () => {
+    pendingRequests();
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 503 }));
+    await expect(searchMusic("Adele")).rejects.toThrow("unavailable");
+    expect(fetchMock.mock.calls.every(([, options]) => options?.signal?.aborted)).toBe(true);
   });
 });

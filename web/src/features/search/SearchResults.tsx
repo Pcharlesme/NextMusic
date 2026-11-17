@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { revealMore, resetVisibleCount } from "./searchSlice";
 import { ResultRow } from "./ResultRow";
 import type { MusicItem, MusicKind } from "./types";
-import { SearchOutlined } from "@mui/icons-material";
+import SearchOutlined from "@mui/icons-material/SearchOutlined";
 
 type Filter = "all" | MusicKind;
 
@@ -28,22 +28,39 @@ export function SearchResults({
   const { query, items, status, error, visibleCount } = useAppSelector(
     (s) => s.search,
   );
-  const [filter, setFilter] = useState<Filter>("song");
+  // ===== Search Filters =====
+  // Start with every result type; the API boundary orders albums first to make artwork visible early.
+  const [filter, setFilter] = useState<Filter>("all");
   const sentinel = useRef<HTMLDivElement>(null);
   const revealedBoundary = useRef("");
   useEffect(() => {
     if (status === "loading") {
-      setFilter("song");
+      setFilter("all");
       revealedBoundary.current = "";
     }
   }, [query, status]);
   const filtered =
     filter === "all" ? items : items.filter((i) => i.kind === filter);
+  // ===== Result Rendering =====
+  // Keep the previous rows visible while React prepares the next batch, without a simulated delay.
   const deferredCount = useDeferredValue(visibleCount);
   const displayedCount = Math.min(deferredCount, visibleCount);
   const revealing = deferredCount < visibleCount;
   const shown = filtered.slice(0, displayedCount);
   const hasMore = shown.length < filtered.length;
+  // A final partial batch must announce its actual size, such as five items for results 21–25.
+  const lastBatchSize = shown.length % 10 || 10;
+  let resultStatus = `Results for “${query}”`;
+  if (status === "loading") resultStatus = "Searching the catalogue…";
+  if (status === "empty") resultStatus = `No results found for “${query}”.`;
+  if (status === "error") resultStatus = `Search failed for “${query}”.`;
+  if (status === "success") {
+    const update = shown.length > 10 ? ` Added ${lastBatchSize} more results.` : "";
+    const next = hasMore ? " Scroll down to reveal the next ten." : " End of fetched results.";
+    resultStatus = `Showing ${shown.length} of ${filtered.length} fetched results for “${query}”.${update}${next}`;
+  }
+  // ===== Infinite Scrolling =====
+  // Disconnect after each reveal and guard its boundary so repeated callbacks cannot add the same batch twice.
   useEffect(() => {
     if (status !== "success" || !hasMore || revealing || typeof IntersectionObserver === "undefined") return;
     const el = sentinel.current;
@@ -77,11 +94,7 @@ export function SearchResults({
             Search results
           </Typography>
           <Typography color="text.secondary" aria-live="polite">
-            {status === "loading"
-              ? "Searching the catalogue…"
-              : status === "success"
-                ? `Showing ${shown.length} of ${filtered.length} fetched results for “${query}”.${shown.length > 10 ? ` Added ${Math.min(10, shown.length - 10)} more results.` : hasMore ? " Scroll down to reveal the next ten." : " End of fetched results."}`
-                : `Results for “${query}”`}
+            {resultStatus}
           </Typography>
         </Box>
         {status === "success" && (

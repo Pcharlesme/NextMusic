@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import reducer, { resetVisibleCount, revealMore, runSearch } from "./searchSlice";
 import type { MusicItem } from "./types";
 
-// Test-only state records; never imported by the application.
+// ===== Isolated Search Records =====
+// These records exercise state changes without calling Apple or supplying application data.
 const items: MusicItem[] = Array.from({ length: 25 }, (_, index) => ({
   id: `song:${index}`,
   kind: "song",
@@ -48,4 +49,29 @@ describe("ten-at-a-time results", () => {
     expect(stale.status).toBe("loading");
     expect(stale.items).toEqual([]);
   });
+  it("marks a successful empty response separately from a failed request", () => {
+    const pending = reducer(undefined, runSearch.pending("empty-request", "Unknown"));
+    const empty = reducer(pending, runSearch.fulfilled({ term: "Unknown", items: [] }, "empty-request", "Unknown"));
+    expect(empty.status).toBe("empty");
+    expect(empty.error).toBeNull();
+    const failed = reducer(pending, runSearch.rejected(new Error("Unavailable"), "empty-request", "Unknown"));
+    expect(failed.status).toBe("error");
+    expect(failed.error).toBe("Unavailable");
+  });
+
+  it("ignores errors from a superseded request", () => {
+    const pending = reducer(populated(), runSearch.pending("request-2", "Coldplay"));
+    const stale = reducer(pending, runSearch.rejected(new Error("Old failure"), "request-1", "Adele"));
+    expect(stale.status).toBe("loading");
+    expect(stale.error).toBeNull();
+    expect(stale.activeRequestId).toBe("request-2");
+  });
+
+  it("returns to idle when the active request is cancelled", () => {
+    const pending = reducer(undefined, runSearch.pending("cancelled", "Adele"));
+    const cancelled = reducer(pending, runSearch.rejected({ name: "AbortError", message: "Aborted" }, "cancelled", "Adele"));
+    expect(cancelled.status).toBe("idle");
+    expect(cancelled.activeRequestId).toBeNull();
+  });
+
 });
