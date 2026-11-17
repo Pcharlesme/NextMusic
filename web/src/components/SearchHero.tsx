@@ -59,6 +59,8 @@ export function SearchHero({ onSearch, onPreview, playingId, loading }: Props) {
     return () => controller.abort();
   }, [artworkAttempt]);
 
+  // ===== Search Form =====
+  // Users can search for an artist, album or song. Enter and the Search button submit the same trimmed query.
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const term = value.trim();

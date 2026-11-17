@@ -50,9 +50,13 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
   for (const item of items) counts[item.kind]++;
 
   const filtered = filter === "all" ? items : items.filter((item) => item.kind === filter);
+  // ===== Ten Items at a Time =====
+  // Display only the revealed portion of the matching results, including when a type filter is selected.
   const shown = filtered.slice(0, visibleCount);
   const remaining = filtered.length - shown.length;
 
+  // ===== Infinite Scrolling =====
+  // Reveal the next ten when scrolling brings the end marker into view. Allow only one reveal per scroll listener.
   useEffect(() => {
     if (status !== "success" || remaining <= 0) return;
     let revealed = false;
@@ -120,6 +124,8 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
         </Box>
       )}
 
+      {/* ===== No Results Notification ===== */}
+      {/* Tell the user clearly when a successful search returns no matches. */}
       {status === "empty" && (
         <Box className="state-panel">
           <SearchOutlined sx={{ fontSize: 48, color: "#171717" }} />
@@ -144,6 +150,8 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
 
       {status === "success" && (
         <>
+          {/* ===== Matching Artists, Albums and Songs ===== */}
+          {/* Render the visible matches in their relevant groups, using lists for the returned items. */}
           <div className="result-groups">
             {(["artist", "album", "song"] as MusicKind[]).map((kind) => {
               const group = shown.filter((item) => item.kind === kind);
