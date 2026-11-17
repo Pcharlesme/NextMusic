@@ -13,7 +13,10 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { revealMore, resetVisibleCount } from "./searchSlice";
 import { ResultRow } from "./ResultRow";
 import type { MusicItem, MusicKind } from "./types";
+import { SearchOutlined } from "@mui/icons-material";
+
 type Filter = "all" | MusicKind;
+
 export function SearchResults({
   onRetry,
   onPreview,
@@ -25,12 +28,12 @@ export function SearchResults({
   const { query, items, status, error, visibleCount } = useAppSelector(
     (s) => s.search,
   );
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>("song");
   const sentinel = useRef<HTMLDivElement>(null);
   const revealedBoundary = useRef("");
   useEffect(() => {
     if (status === "loading") {
-      setFilter("all");
+      setFilter("song");
       revealedBoundary.current = "";
     }
   }, [query, status]);
@@ -139,7 +142,7 @@ export function SearchResults({
       )}
       {status === "empty" && (
         <Box className="state-panel">
-          <SearchOffRounded sx={{ fontSize: 48, color: "#171717" }} />
+          <SearchOutlined sx={{ fontSize: 48, color: "#171717" }} />
           <Typography variant="h5" fontWeight={800}>
             No results found
           </Typography>
