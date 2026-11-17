@@ -1,4 +1,6 @@
 import { createTheme } from "@mui/material/styles";
+// ===== Theme and Styling =====
+// Keep the approved monochrome palette and typography consistent across shared controls.
 export const theme = createTheme({
   palette: {
     mode: "light",
@@ -20,6 +22,8 @@ export const theme = createTheme({
       styleOverrides: { root: { borderRadius: 4, minHeight: 44 } },
     },
     MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 4 } } },
+    // ===== Keyboard Focus =====
+    // Keep a visible outline on links, buttons and native audio controls.
     MuiCssBaseline: {
       styleOverrides: {
         body: { margin: 0 },

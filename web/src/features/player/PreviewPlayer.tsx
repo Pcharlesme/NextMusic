@@ -10,6 +10,8 @@ export function PreviewPlayer({ item, onClose }: { item: MusicItem | null; onClo
   const audioRef = useRef<HTMLAudioElement>(null);
   const [duration, setDuration] = useState(0);
   const [failed, setFailed] = useState(false);
+  // ===== Audio Preview =====
+  // Pause the previous audio element on song changes and unmount so clips never overlap.
   useEffect(() => {
     setDuration(0);
     setFailed(false);
@@ -18,8 +20,20 @@ export function PreviewPlayer({ item, onClose }: { item: MusicItem | null; onClo
   }, [item?.id]);
   if (!item?.previewUrl) return null;
   const seconds = Math.round(duration);
+  // ===== Player Dismissal =====
+  // Closing stops playback; the parent returns focus to the song's play button.
+  const close = () => {
+    audioRef.current?.pause();
+    onClose();
+  };
   return (
-    <Box className="player-wrap preview-player" role="region" aria-label="Audio preview player">
+    <Box className="player-wrap preview-player" role="region" aria-label="Audio preview player"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          close();
+        }
+      }}>
       <Box className="preview-track">
         <Avatar src={item.artwork || undefined} variant="square" alt="" sx={{ width: 48, height: 48 }} />
         <Box sx={{ minWidth: 0 }}>
@@ -28,6 +42,8 @@ export function PreviewPlayer({ item, onClose }: { item: MusicItem | null; onClo
           <Typography fontSize={12} color="#ddd">Audio preview{seconds > 0 ? ` · ${seconds} seconds` : ""}</Typography>
         </Box>
       </Box>
+      {/* ===== Native Playback Controls ===== */}
+      {/* Browser controls provide play, pause, seeking and volume for the actual clip. */}
       <audio
         key={item.id}
         ref={audioRef}
@@ -48,7 +64,7 @@ export function PreviewPlayer({ item, onClose }: { item: MusicItem | null; onClo
           Listen on Apple Music<span className="sr-only"> (opens in a new tab)</span>
         </a>
       )}
-      <IconButton className="preview-close" onClick={() => { audioRef.current?.pause(); onClose(); }}
+      <IconButton className="preview-close" onClick={close}
         aria-label="Close preview player" sx={{ color: "white", minWidth: 44, minHeight: 44 }}>
         <CloseRounded />
       </IconButton>
