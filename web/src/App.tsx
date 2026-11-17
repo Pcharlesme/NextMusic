@@ -12,6 +12,7 @@ import { runSearch } from "./features/search/searchSlice";
 import type { MusicItem } from "./features/search/types";
 
 export default function App() {
+  
   const dispatch = useAppDispatch();
   const status = useAppSelector((s) => s.search.status);
   const query = useAppSelector((s) => s.search.query);
