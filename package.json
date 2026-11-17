@@ -1,0 +1,15 @@
+{
+  "name": "nextmusic",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@nextmusic/web",
+    "build": "npm run build --workspace=@nextmusic/web",
+    "typecheck": "npm run typecheck --workspace=@nextmusic/web",
+    "preview": "npm run preview --workspace=@nextmusic/web",
+    "test": "npm run test --workspace=@nextmusic/web"
+  }
+}
