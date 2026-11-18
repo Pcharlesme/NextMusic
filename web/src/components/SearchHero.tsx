@@ -149,6 +149,10 @@ export function SearchHero({ onSearch, onPreview, playingId, loading }: Props) {
                     <img
                       src={item.artwork}
                       alt=""
+                      width={300}
+                      height={300}
+                      fetchPriority={index === 1 ? "high" : "auto"}
+                      decoding="async"
                       onError={(event) => {
                         event.currentTarget.style.visibility = "hidden";
                       }}

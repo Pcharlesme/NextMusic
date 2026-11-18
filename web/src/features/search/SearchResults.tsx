@@ -78,7 +78,7 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
   if (status === "idle") return null;
 
   let summary = "Searching the catalogue…";
-  if (status === "success") summary = `Showing ${shown.length} of ${filtered.length} results for “${query}”`;
+  if (status === "success") summary = `Showing ${shown.length} of ${filtered.length} returned matches for “${query}”`;
   if (status === "empty") summary = `No results found for “${query}”`;
   if (status === "error") summary = `Search failed for “${query}”`;
 

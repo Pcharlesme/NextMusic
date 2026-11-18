@@ -121,7 +121,7 @@ server/
   vercel.json               Backend deployment routing
 web/
   src/app/                  Store, typed hooks and theme
-  src/components/           Header, search form, background and suggestions
+  src/components/           Header, search form and suggestions
   src/features/search/      Search state and result components
   src/features/player/      Shared audio-preview player
   src/services/             API normalization and service tests
@@ -169,8 +169,10 @@ Health returns `{"status":"ok","service":"nextmusic"}`. It checks the Express pr
 ## Boundaries and trade-offs
 
 - The combined Apple request uses `limit=50`, but multiple entities can yield more than fifty total records. Counts describe the fetched selection, not an exhaustive catalogue total.
+- A popular query can return 60 matches: a live Adele request returned 50 songs, four artists and six albums. That is Apple's response, not a fixed application count. An unmatched query returns zero. The page reveals ten returned matches at a time; scrolling does not request another catalogue page.
 - Artwork and preview availability vary by record and country. Missing images have fallbacks; a preview control appears only when Apple supplies a URL. Previews are short clips, not full-track streaming.
 - Featured artwork depends on a live query. External API, image and font timing can affect loading; a Lighthouse score is not a guarantee for every visit.
+- Clean Chrome audits on 18 November 2026 measured the deployed site at 92, 92 and 94 for mobile performance, with Accessibility, Best Practices and SEO at 100. Local before/after runs both had a median of 86; the image priority change did not produce a measurable score increase. An API preload experiment was also removed after failing to improve the score. The main featured cover receives high image priority; explicit image dimensions preserve its aspect ratio before it loads.
 - Artist and album cards coexist with song rows. All three are rendered as semantic lists, with different layouts suited to their metadata.
 - Suggestions are predefined search terms, not generated search results. Production requests never fall back to mock catalogue data.
 
