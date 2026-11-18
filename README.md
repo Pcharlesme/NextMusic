@@ -109,7 +109,7 @@ requirement/             Assessment brief and local review notes
 npm test
 ```
 
-**Latest verification: 52 tests passed**—19 frontend and 33 Express/adapter tests. Coverage includes API normalization, cancellation/timeouts, Redux visibility and stale responses, empty/error states, endpoint validation, static serving, compression and caching. Express tests use real local HTTP requests with Apple isolated.
+**Latest verification: 53 tests passed**—19 frontend and 34 Express/adapter tests. Coverage includes API normalization, cancellation/timeouts, Redux visibility and stale responses, empty/error states, endpoint validation, static serving, compression and caching. Express tests use real local HTTP requests with Apple isolated.
 
 UI interactions were checked separately in Chrome; repeatable UI tests are not yet in the repository.
 
@@ -140,6 +140,8 @@ Commit and push the changes, then redeploy the backend first and frontend second
 If the dashboard has old build/output overrides, clear them as shown above.
 
 - `server/api/index.ts` exports the shared app as a Vercel Node function.
+- Server TypeScript output rewrites relative `.ts` imports to `.js`, matching the files
+  packaged by Vercel. Local development continues to run the original TypeScript.
 - `server/vercel.json` disables Express framework autodetection, routes `/api/*` to
   that function and redirects the backend homepage to `/api/health`.
 - `web/vercel.json` forwards `/api/*` to `https://nextmusic-api.vercel.app/api/*`.

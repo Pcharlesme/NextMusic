@@ -1,11 +1,12 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createApp } from "./index.ts";
 import vercelApp from "./api/index.ts";
+import ts from "typescript";
 
 // ===== Isolated Express Endpoint Tests =====
 // Send real HTTP requests to Express while replacing only the external Apple dependency.
@@ -154,6 +155,16 @@ describe("production delivery", () => {
 });
 
 describe("Vercel adapter", () => {
+  it("rewrites relative TypeScript imports in the emitted Vercel adapter", async () => {
+    const config = ts.readConfigFile(path.join(import.meta.dirname, "tsconfig.json"), ts.sys.readFile);
+    const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, import.meta.dirname);
+    const entry = path.join(import.meta.dirname, "api/index.ts");
+    const source = await readFile(entry, "utf8");
+    const emitted = ts.transpileModule(source, { fileName: entry, compilerOptions: parsed.options }).outputText;
+    expect(emitted).toContain('"../index.js"');
+    expect(emitted).not.toContain('"../index.ts"');
+  });
+
   let adapterServer: Server;
   let adapterUrl: string;
 
