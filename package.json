@@ -11,6 +11,6 @@
     "build": "npm run build -w @nextmusic/web",
     "start": "npm run start -w @nextmusic/server",
     "typecheck": "npm run typecheck --workspaces",
-    "test": "npm run test -w @nextmusic/web"
+    "test": "npm run test --workspaces"
   }
 }
