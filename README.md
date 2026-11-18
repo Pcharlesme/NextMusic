@@ -78,6 +78,7 @@ web/
 ## Testing
 
 ```sh
+npm run lint
 npm run typecheck
 npm test
 npm run build
@@ -85,7 +86,7 @@ npm run build
 
 The tests cover response normalization, cancellation, timeouts, stale requests, ten-at-a-time visibility, empty/error states, query validation, static serving, compression, caching and the Vercel adapter. Apple responses are mocked; Express tests exercise real HTTP endpoints on temporary local ports.
 
-There is no configured lint command or committed automated browser suite. Vite's standalone preview does not provide the backend API.
+ESLint checks both workspaces and tests, including React hook usage and dependencies. Prettier handles formatting separately. There is no committed automated browser suite. Vite's standalone preview does not provide the backend API.
 
 ## API limitations
 

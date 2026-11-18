@@ -76,7 +76,7 @@ export async function searchMusic(term: string, signal?: AbortSignal): Promise<M
     }
     return [...items.values()].sort((a, b) => kindOrder[a.kind] - kindOrder[b.kind] || Number(!a.artwork) - Number(!b.artwork));
   } catch (error) {
-    if (timedOut) throw new Error("The search took too long. Please try again.");
+    if (timedOut) throw new Error("The search took too long. Please try again.", { cause: error });
     throw error;
   } finally {
     clearTimeout(timer);
