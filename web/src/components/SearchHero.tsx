@@ -28,7 +28,7 @@ interface Props {
 const features = [
   { title: "Artists", description: "Find your favourite artists and discover new ones.", Icon: MusicNoteRounded },
   { title: "Albums", description: "Explore complete albums and iconic releases.", Icon: AlbumOutlined },
-  { title: "Songs", description: "Play a 30-second preview of any song you find.", Icon: GraphicEqRounded },
+  { title: "Songs", description: "Listen to available song previews.", Icon: GraphicEqRounded },
 ];
 
 const tilePositions = ["left", "main", "right"];
@@ -59,8 +59,6 @@ export function SearchHero({ onSearch, onPreview, playingId, loading }: Props) {
     return () => controller.abort();
   }, [artworkAttempt]);
 
-  // ===== Search Form =====
-  // Users can search for an artist, album or song. Enter and the Search button submit the same trimmed query.
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const term = value.trim();

@@ -16,8 +16,6 @@ interface SearchState {
   activeRequestId: string | null;
 }
 
-// ===== First Ten Results =====
-// Each new search starts with ten visible items, or fewer when the response contains fewer matches.
 const PAGE_SIZE = 10;
 
 const initialState: SearchState = {
@@ -33,8 +31,6 @@ const slice = createSlice({
   name: "search",
   initialState,
   reducers: {
-    // ===== Next Ten Results =====
-    // Scrolling or the Show more button reveals ten additional fetched items, stopping at the final result.
     revealMore(s) {
       s.visibleCount = Math.min(s.items.length, s.visibleCount + PAGE_SIZE);
     },
@@ -52,11 +48,11 @@ const slice = createSlice({
         s.visibleCount = PAGE_SIZE;
         s.activeRequestId = a.meta.requestId;
       })
+      // ===== Request Ownership =====
+      // Ignore late responses and errors from searches replaced by a newer request.
       .addCase(runSearch.fulfilled, (s, a) => {
         if (s.activeRequestId !== a.meta.requestId) return;
         s.items = a.payload.items;
-        // ===== Empty Search Response =====
-        // A successful search with no matches shows the no-results message; a failed request remains an error.
         s.status = s.items.length ? "success" : "empty";
         s.activeRequestId = null;
       })

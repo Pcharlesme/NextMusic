@@ -37,7 +37,6 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
-// ===== Health and Query Validation =====
 describe("health and query validation", () => {
   it("reports health without contacting Apple", async () => {
     const response = await fetch(`${baseUrl}/api/health`);
@@ -53,7 +52,6 @@ describe("health and query validation", () => {
   });
 });
 
-// ===== Apple Search Integration =====
 describe("search proxy", () => {
   it("forwards a trimmed, encoded query and returns all supplied result types", async () => {
     const results = [{ wrapperType: "artist", artistId: 1 }, { wrapperType: "collection", collectionId: 2 }, { wrapperType: "track", kind: "song", trackId: 3 }];
@@ -64,7 +62,7 @@ describe("search proxy", () => {
     const url = new URL(String(fetcher.mock.calls[0][0]));
     expect(url.origin).toBe("https://itunes.apple.com");
     expect(url.pathname).toBe("/search");
-    expect(Object.fromEntries(url.searchParams)).toEqual({ term: "Adele & friends", media: "music", entity: "musicArtist,album,song", country: "gb", limit: "50" });
+    expect(Object.fromEntries(url.searchParams)).toEqual({ term: "Adele & friends", media: "music", entity: "musicArtist,album,song", country: "gb", limit: "100" });
     expect(fetcher.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
   });
   it("preserves a successful empty result", async () => {
@@ -101,7 +99,6 @@ describe("search proxy", () => {
   });
 });
 
-// ===== Static Files and Route Boundaries =====
 describe("production serving", () => {
   it.each(["/", "/search/results"])("serves the React entry page for %s", async (route) => {
     const response = await fetch(baseUrl + route);

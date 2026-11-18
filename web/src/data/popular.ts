@@ -1,1 +1,1 @@
-export const popularSearches = ["Adele", "Burna Boy", "Coldplay", "Tems", "Taylor Swift", "Kendrick Lamar"];
+export const popularSearches = ["Adele", "Burna Boy", "Coldplay", "Taylor Swift", "Kendrick Lamar"];

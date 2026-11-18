@@ -47,8 +47,6 @@ function normalize(result: unknown): MusicItem | null {
   };
 }
 
-// ===== Artist, Album and Song Search =====
-// Send the user's query to the search endpoint, then prepare matching artists, albums and songs for display.
 export async function searchMusic(term: string, signal?: AbortSignal): Promise<MusicItem[]> {
   const query = term.trim();
   if (!query || query.length > 200) throw new Error("Enter a search term between 1 and 200 characters.");
@@ -70,8 +68,8 @@ export async function searchMusic(term: string, signal?: AbortSignal): Promise<M
     if (!response.ok) throw new Error(typeof body?.error === "string" ? body.error : "The music catalogue is unavailable. Please try again.");
     if (!Array.isArray(body?.results)) throw new Error("Got an unexpected response. Please try again.");
 
-    // ===== Search Results =====
-    // Normalize Apple records and remove duplicate IDs so each matching item appears only once.
+    // ===== Result Identity =====
+    // Type-prefixed IDs keep artists, albums and songs distinct when Apple reuses numeric IDs.
     const items = new Map<string, MusicItem>();
     for (const item of body.results.map(normalize)) {
       if (item && !items.has(item.id)) items.set(item.id, item);

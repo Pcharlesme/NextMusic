@@ -50,13 +50,11 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
   for (const item of items) counts[item.kind]++;
 
   const filtered = filter === "all" ? items : items.filter((item) => item.kind === filter);
-  // ===== Ten Items at a Time =====
-  // Display only the revealed portion of the matching results, including when a type filter is selected.
   const shown = filtered.slice(0, visibleCount);
   const remaining = filtered.length - shown.length;
 
   // ===== Infinite Scrolling =====
-  // Reveal the next ten when scrolling brings the end marker into view. Allow only one reveal per scroll listener.
+  // Guard repeated scroll events until React updates the visible batch and replaces the listener.
   useEffect(() => {
     if (status !== "success" || remaining <= 0) return;
     let revealed = false;
@@ -124,7 +122,6 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
         </Box>
       )}
 
-      {/* ===== No Results Notification ===== */}
       {status === "empty" && (
         <Box className="state-panel">
           <SearchOutlined sx={{ fontSize: 48, color: "#171717" }} />
