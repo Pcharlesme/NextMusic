@@ -5,6 +5,7 @@ import path from "node:path";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createApp } from "./index.ts";
+import vercelApp from "./api/index.ts";
 
 // ===== Isolated Express Endpoint Tests =====
 // Send real HTTP requests to Express while replacing only the external Apple dependency.
@@ -149,5 +150,39 @@ describe("production delivery", () => {
     const response = await fetch(`${baseUrl}/api/search?term=Adele`);
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control") || "").not.toContain("immutable");
+  });
+});
+
+describe("Vercel adapter", () => {
+  let adapterServer: Server;
+  let adapterUrl: string;
+
+  beforeAll(async () => {
+    adapterServer = await new Promise<Server>((resolve) => {
+      const listening = vercelApp.listen(0, "127.0.0.1", () => resolve(listening));
+    });
+    adapterUrl = `http://127.0.0.1:${(adapterServer.address() as AddressInfo).port}`;
+  });
+  afterAll(async () => {
+    if (adapterServer) await new Promise<void>((resolve, reject) => adapterServer.close((error) => error ? reject(error) : resolve()));
+  });
+
+  it("exports a callable app and serves the shared health endpoint", async () => {
+    expect(typeof vercelApp).toBe("function");
+    const response = await fetch(`${adapterUrl}/api/health`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "ok", service: "nextmusic" });
+  });
+
+  it("preserves search validation without calling Apple", async () => {
+    const response = await fetch(`${adapterUrl}/api/search?term=%20`);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toHaveProperty("error");
+  });
+
+  it("keeps unknown API routes as JSON errors", async () => {
+    const response = await fetch(`${adapterUrl}/api/unknown`);
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toContain("application/json");
   });
 });

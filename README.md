@@ -109,7 +109,7 @@ requirement/             Assessment brief and local review notes
 npm test
 ```
 
-**Latest verification: 49 tests passed**—19 frontend and 30 Express tests. Coverage includes API normalization, cancellation/timeouts, Redux visibility and stale responses, empty/error states, endpoint validation, static serving, compression and caching. Express tests use real local HTTP requests with Apple isolated.
+**Latest verification: 52 tests passed**—19 frontend and 33 Express/adapter tests. Coverage includes API normalization, cancellation/timeouts, Redux visibility and stale responses, empty/error states, endpoint validation, static serving, compression and caching. Express tests use real local HTTP requests with Apple isolated.
 
 UI interactions were checked separately in Chrome; repeatable UI tests are not yet in the repository.
 
@@ -122,18 +122,40 @@ UI interactions were checked separately in Chrome; repeatable UI tests are not y
 
 ## Deployment
 
-No public deployment URL is verified. On a Node.js host, install dependencies including build tools, run `npm run build`, then `npm start`. Preserve the workspace layout so Express can find `web/dist`; set `PORT` if required.
+The Vercel setup uses two projects. The backend adapter imports the existing Express
+app; local `npm run dev`, `npm start` and the production static-serving behavior stay unchanged.
 
-Check the running server:
+| Vercel setting | Frontend | Backend |
+| --- | --- | --- |
+| Root Directory | `web` | `server` |
+| Framework Preset | Vite | Other |
+| Build Command | `npm run build` | Empty (no build command) |
+| Output Directory | `dist` | Default; remove any `dist` override |
+| Node.js | 22.x | 22.x |
+
+Keep **Include source files outside of the Root Directory in the Build Step** enabled
+for both projects: their TypeScript settings extend the root configuration. Install
+all workspace dependencies, including development dependencies used for the build.
+Commit and push the changes, then redeploy the backend first and frontend second.
+If the dashboard has old build/output overrides, clear them as shown above.
+
+- `server/api/index.ts` exports the shared app as a Vercel Node function.
+- `server/vercel.json` disables Express framework autodetection, routes `/api/*` to
+  that function and redirects the backend homepage to `/api/health`.
+- `web/vercel.json` forwards `/api/*` to `https://nextmusic-api.vercel.app/api/*`.
+  Browser requests remain same-origin, so no cross-origin API URL or CORS middleware is needed.
+
+
 
 ```sh
-curl http://localhost:3001/api/health
-curl 'http://localhost:3001/api/search?term=Adele'
+curl https://nextmusic-api.vercel.app/api/health
+curl https://next-music-search.vercel.app/api/health
+curl 'https://next-music-search.vercel.app/api/search?term=Adele'
 ```
 
-Health returns `{"status":"ok","service":"nextmusic"}`; it confirms Express is running, not Apple's availability.
 
-## Assessment compliance
+For a conventional Node host, run `npm ci`, `npm run build` and `npm start` from the
+repository root. Express then serves both the frontend and API; set `PORT` if required.
 
 - [x] Search artists, albums and songs through iTunes.
 - [x] Display matching results and explicit no-results feedback.
@@ -142,4 +164,4 @@ Health returns `{"status":"ok","service":"nextmusic"}`; it confirms Express is r
 - [x] Node.js + Express static serving.
 - [x] Meaningful automated unit and endpoint tests.
 
-Catalogue data, artwork and previews are provided by Apple iTunes. Screenshots illustrate particular searches; live results can change. `requirement/` is Git-ignored, so local assessment notes are not automatically included in a clone.
+
