@@ -48,8 +48,7 @@ const slice = createSlice({
         s.visibleCount = PAGE_SIZE;
         s.activeRequestId = a.meta.requestId;
       })
-      // ===== Request Ownership =====
-      // Ignore late responses and errors from searches replaced by a newer request.
+
       .addCase(runSearch.fulfilled, (s, a) => {
         if (s.activeRequestId !== a.meta.requestId) return;
         s.items = a.payload.items;

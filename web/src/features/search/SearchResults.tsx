@@ -53,8 +53,7 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
   const shown = filtered.slice(0, visibleCount);
   const remaining = filtered.length - shown.length;
 
-  // ===== Infinite Scrolling =====
-  // Guard repeated scroll events until React updates the visible batch and replaces the listener.
+
   useEffect(() => {
     if (status !== "success" || remaining <= 0) return;
     let revealed = false;
