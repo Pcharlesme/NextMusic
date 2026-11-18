@@ -20,8 +20,8 @@ type Filter = "all" | MusicKind;
 const filters: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "artist", label: "Artists" },
-  { value: "album", label: "Albums" },
   { value: "song", label: "Songs" },
+  { value: "album", label: "Albums" },
 ];
 
 const groupTitles: Record<MusicKind, string> = { artist: "Artists", album: "Albums", song: "Songs" };
@@ -125,7 +125,6 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
       )}
 
       {/* ===== No Results Notification ===== */}
-      {/* Tell the user clearly when a successful search returns no matches. */}
       {status === "empty" && (
         <Box className="state-panel">
           <SearchOutlined sx={{ fontSize: 48, color: "#171717" }} />
@@ -150,10 +149,8 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
 
       {status === "success" && (
         <>
-          {/* ===== Matching Artists, Albums and Songs ===== */}
-          {/* Render the visible matches in their relevant groups, using lists for the returned items. */}
           <div className="result-groups">
-            {(["artist", "album", "song"] as MusicKind[]).map((kind) => {
+            {(["artist", "song", "album"] as MusicKind[]).map((kind) => {
               const group = shown.filter((item) => item.kind === kind);
               if (!group.length) return null;
               return (
@@ -169,17 +166,17 @@ export function SearchResults({ playingId, onPreview, onSearch, onRetry }: Props
                       ))}
                     </ul>
                   )}
-                  {kind === "album" && (
-                    <ul className="album-grid">
-                      {group.map((item) => (
-                        <AlbumCard key={item.id} item={item} />
-                      ))}
-                    </ul>
-                  )}
                   {kind === "song" && (
                     <ul className="song-list">
                       {group.map((item, index) => (
                         <SongRow key={item.id} item={item} position={index + 1} playing={item.id === playingId} onPreview={onPreview} />
+                      ))}
+                    </ul>
+                  )}
+                  {kind === "album" && (
+                    <ul className="album-grid">
+                      {group.map((item) => (
+                        <AlbumCard key={item.id} item={item} />
                       ))}
                     </ul>
                   )}

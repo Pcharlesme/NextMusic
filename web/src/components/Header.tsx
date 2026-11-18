@@ -1,8 +1,5 @@
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import HelpOutlineRounded from "@mui/icons-material/HelpOutlineRounded";
 
 export function Header() {
   return (
@@ -16,11 +13,6 @@ export function Header() {
             next<span>music</span>
           </span>
         </a>
-        <Tooltip title="About NextMusic">
-          <IconButton component="a" href="#about" aria-label="About NextMusic" sx={{ color: "inherit", minWidth: 44, minHeight: 44 }}>
-            <HelpOutlineRounded sx={{ fontSize: 30 }} />
-          </IconButton>
-        </Tooltip>
       </Container>
     </Box>
   );

@@ -9,6 +9,7 @@ import { SearchResults } from "./features/search/SearchResults";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { runSearch } from "./features/search/searchSlice";
 import type { MusicItem } from "./features/search/types";
+import GridBackground from "./components/GridBg";
 
 const PreviewPlayer = lazy(() => import("./features/player/PreviewPlayer").then((module) => ({ default: module.PreviewPlayer })));
 
@@ -42,6 +43,7 @@ export default function App() {
   return (
     <Box sx={{ minHeight: "100vh", overflowX: "hidden" }}>
       <Header />
+      <GridBackground />
       <Box component="main" id="main-content" tabIndex={-1}>
         <SearchHero onSearch={search} onPreview={openPreview} playingId={preview?.id} loading={status === "loading"} />
         <SearchResults onSearch={search} onRetry={() => search(query)} onPreview={openPreview} playingId={preview?.id} />

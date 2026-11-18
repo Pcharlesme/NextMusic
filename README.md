@@ -1,42 +1,41 @@
 # NextMusic
 
-A React and Express application built for the NEXT frontend assessment. Search the iTunes catalogue for artists, albums and songs, view matching results, and reveal ten more items as you scroll.
+Search the iTunes catalogue for artists, songs and albums, explore the results, and listen to available audio previews. NextMusic combines a responsive React interface with an Express API that handles catalogue requests and production hosting.
 
-![NextMusic landing page with search and featured song previews](web/public/assets/localhost_5173_%20%283%29.png)
+[Open NextMusic](https://next-music-search.vercel.app/) · [API health](https://nextmusic-api.vercel.app/api/health)
 
 <details>
-<summary>See search results and the audio player</summary>
+<summary>View the interface</summary>
 
-**Artists and albums**
+**Search and discovery**
 
-![Coldplay search results with type filters and album artwork](web/public/assets/Screenshot%202026-11-18%20at%2001.45.52.png)
+![NextMusic landing page and featured music](web/public/assets/localhost_5173_%20%283%29.png)
 
-**Songs and playback**
+**Catalogue results**
 
-![Song results with the fixed audio-preview player](web/public/assets/Screenshot%202026-11-18%20at%2001.46.42.png)
+![Artist and album results with artwork and filters](web/public/assets/Screenshot%202026-11-18%20at%2001.45.52.png)
+
+**Audio previews**
+
+![Song results with the shared audio player](web/public/assets/Screenshot%202026-11-18%20at%2001.46.42.png)
+
+Screenshots illustrate catalogue searches; live results and interface details can change.
 
 </details>
 
-## Features
+## What it does
 
-**Assessment requirements:** artist, album and song search; matching results; ten-at-a-time scroll reveal; explicit no-results feedback.
+- Searches artists, songs and albums together, with filters and counts for each type.
+- Shows ten results initially and reveals ten more on scroll, with a Show more alternative.
+- Keeps artists first, followed by songs and albums; available artwork leads within each type.
+- Shows loading skeletons, an explicit empty state and actionable errors with retry.
+- Offers suggested searches and Apple Music links alongside real catalogue data.
+- Plays one preview at a time in a shared player with native playback controls.
+- Keeps the header fixed while the page scrolls, with a keyboard-accessible skip link.
 
-**Optional:** type filters, suggestions, artwork, Apple Music links and a shared preview player. Loading skeletons, empty/error messages and retry controls cover request states.
+## Run locally
 
-## Tech stack
-
-| Technology | Responsibility |
-| --- | --- |
-| React + TypeScript | Typed UI components and application behavior. |
-| Redux Toolkit + Redux Thunk | Search state, asynchronous requests and visible-result count. |
-| Vite | Frontend development server and production build. |
-| Material UI + Emotion + CSS | Shared controls, theme and responsive layouts. |
-| Node.js + Express | iTunes proxy, health endpoint and production static serving. |
-| Vitest | API-service, Redux and Express endpoint tests. |
-
-## Getting started
-
-Requires **Node.js 22.18+** and npm. No API key or environment file is required.
+Requires **Node.js 22.18+** and npm. No API key or environment file is needed.
 
 ```sh
 git clone https://github.com/Pcharlesme/NextMusic.git
@@ -45,125 +44,134 @@ npm ci
 npm run dev
 ```
 
-Open **http://localhost:5173**. Vite proxies `/api` to Express on **3001**. Catalogue data requires both servers; there is no offline fallback.
+Open **http://localhost:5173**. This starts Vite and Express; Vite forwards `/api` requests to the backend on port **3001**. The interface can render independently, but catalogue search and featured artwork require the API.
 
-To run them in separate terminals:
+To manage the processes separately, run these in two terminals:
 
 ```sh
 npm run dev --workspace=@nextmusic/server
 npm run dev --workspace=@nextmusic/web
 ```
 
-Build and run production:
+### Production
 
 ```sh
 npm run build
 npm start
 ```
 
-Open **http://localhost:3001**. Express serves `web/dist` and the API together. Production accepts `PORT=8080 npm start`; development's proxy expects port 3001.
+Open **http://localhost:3001**. Express serves the compiled frontend from `web/dist` and handles API requests on the same origin. Set `PORT` for a different production port, for example `PORT=8080 npm start`. The development proxy remains configured for 3001.
 
-```sh
-npm test                 # Frontend and Express tests
-npm run typecheck        # Both TypeScript workspaces
-```
-
-No lint script is configured. Vite preview alone does not provide the API.
-
-## Project structure
-
-```text
-server/
-  index.ts               Express API and production hosting
-  index.test.ts          HTTP endpoint and delivery tests
-web/src/
-  app/                   Redux store, typed hooks and MUI theme
-  components/            Search form, header and suggestions
-  features/search/       Search state, filters and result components
-  features/player/       Shared audio-preview player
-  services/              API requests, normalization and tests
-  data/                  Suggested search terms
-web/public/assets/       Branding and screenshots
-requirement/             Assessment brief and local review notes
-```
-
-## Architecture and data flow
-
-**Search form → Redux thunk → API service → Express → iTunes → normalized results → React.**
-
-`SearchHero` submits the term; `runSearch` manages request state. `musicApi.ts` calls Express and normalizes/deduplicates the response. Express validates queries and contacts Apple; result components handle presentation and filtering.
-
-## Key implementation decisions
-
-- **Redux Toolkit and Thunk:** keep asynchronous search and loading/error/empty states together. Request IDs prevent old responses from replacing newer searches.
-- **Express proxy:** avoids direct browser-to-Apple CORS dependencies and also fulfills the brief's Node.js static-serving requirement.
-- **Result types:** one normalized model feeds separate artist, album and song lists, in that order.
-- **Scrolling:** show ten fetched items, then reveal ten more at the end marker. Filters reset visibility; Show more provides an alternative. This is **not server-side pagination**.
-- **Failures:** browser requests time out after 15 seconds; Apple requests after ten. Errors remain separate from successful empty results.
-- **Accessibility:** labeled native form, Enter submission, skip link, visible focus, semantic headings/lists, status announcements and native audio controls. Closing the player restores focus to its trigger.
-- **Delivery:** compression reduces transfer; versioned JS/CSS is cached long-term while HTML revalidates.
-
-## Testing
+### Checks
 
 ```sh
 npm test
+npm run typecheck
+npm run build
 ```
 
-**Latest verification: 53 tests passed**—19 frontend and 34 Express/adapter tests. Coverage includes API normalization, cancellation/timeouts, Redux visibility and stale responses, empty/error states, endpoint validation, static serving, compression and caching. Express tests use real local HTTP requests with Apple isolated.
+There is no configured lint command. Vite's standalone preview does not supply the backend API.
 
-UI interactions were checked separately in Chrome; repeatable UI tests are not yet in the repository.
+## Architecture
 
-## Limitations and trade-offs
+```mermaid
+flowchart LR
+  A[Search form] --> B[Redux thunk]
+  B --> C[Frontend API service]
+  C --> D[Express proxy]
+  D --> E[iTunes Search API]
+  E --> D
+  D --> C
+  C --> F[Normalized search state]
+  F --> G[Results and filters]
+```
 
-- Apple controls artwork and preview availability. Missing artwork uses fallbacks; previews are short clips, not full tracks.
-- Multi-entity `limit=50` requests can return more than fifty combined records. Counts describe the fetched selection, not the entire catalogue.
-- Featured music depends on a live query. External API, artwork and font timing can affect Lighthouse results; there is no guaranteed score.
-- Album cards use a grid inside a semantic list. This differs from `skill.md`'s vertical-row direction, although the PDF leaves presentation flexible.
+Components submit queries and render state. `musicApi.ts` handles browser requests, response validation and normalization. Express owns query validation, the fixed Apple URL and upstream failures. Redux keeps the submitted query, fetched items, request status and visible count together.
+
+| Technology | Purpose |
+| --- | --- |
+| React + TypeScript | Typed components and UI behavior. |
+| Redux Toolkit + Redux Thunk | Asynchronous searches, request states and result visibility. |
+| Vite | Frontend development and production builds. |
+| Material UI + Emotion + CSS | Shared controls, theming and responsive styling. |
+| Node.js + Express | Search proxy, health endpoint and static hosting. |
+| Vitest | Frontend service, Redux and HTTP endpoint tests. |
+
+## Decisions behind the implementation
+
+**Fetch once, reveal in tens.** The app progressively reveals an already-fetched selection. Scrolling does not request an offset or imply access to the complete catalogue. Changing filters resets visibility to ten; the final batch can contain fewer items.
+
+**One model for three result types.** Apple returns different fields for artists, songs and albums. Normalization produces stable type-prefixed IDs, drops unusable records, removes duplicates and keeps artwork, duration and preview links optional. Results order as artists → songs → albums without changing relevance order within otherwise equivalent items.
+
+**Predictable request states.** Redux Toolkit supplies Thunk middleware without additional setup. A new search cancels its predecessor, and request IDs prevent a late response from replacing newer results. The browser deadline is 15 seconds; the upstream Apple deadline is ten. Successful empty responses and failed requests produce different UI states.
+
+**A small server boundary.** Express accepts only a trimmed search term of 1–200 characters and contacts a fixed iTunes endpoint. Invalid queries return 400; upstream errors, invalid responses and timeouts return a safe 502. The browser does not depend on Apple's cross-origin permissions.
+
+**Native controls where they help.** Search uses a labeled form and Enter key support. Results use headings and lists, and status updates are announced politely. Audio uses browser controls for playback, seeking and volume; closing the player returns focus to its trigger. The header's reserved space and scroll offsets keep content from sitting behind it.
+
+**Delivery without a separate infrastructure layer.** Express compresses eligible responses. Content-versioned JavaScript and CSS receive immutable caching; HTML and unversioned assets remain revalidatable. The optional player loads separately from the initial application bundle.
+
+## Project layout
+
+```text
+server/
+  index.ts                  Shared Express application and local startup
+  api/index.ts              Vercel adapter using the same application
+  index.test.ts             HTTP endpoint and delivery tests
+  vercel.json               Backend deployment routing
+web/
+  src/app/                  Store, typed hooks and theme
+  src/components/           Header, search form, background and suggestions
+  src/features/search/      Search state and result components
+  src/features/player/      Shared audio-preview player
+  src/services/             API normalization and service tests
+  src/data/                 Suggested search terms
+  public/assets/            Branding and interface screenshots
+  vercel.json               Same-origin API forwarding
+```
+
+## Testing
+
+**53 tests passed in the latest verification:** 19 frontend tests and 34 Express/adapter tests.
+
+| Area | Coverage |
+| --- | --- |
+| API service | Normalization, ordering, duplicate removal, invalid records, cancellation, timeouts and failures. |
+| Redux | First ten results, subsequent batches, resets, stale requests and empty/error states. |
+| Express | Health, validation, successful and empty searches, upstream failures, static files and missing routes. |
+| Delivery and adapter | Compression, cache boundaries, callable exports and emitted `.js` import paths. |
+
+Tests isolate Apple responses; server tests still send real HTTP requests to Express on temporary local ports. Browser interaction checks have also been run separately, but are not a committed automated UI suite.
 
 ## Deployment
 
-The Vercel setup uses two projects. The backend adapter imports the existing Express
-app; local `npm run dev`, `npm start` and the production static-serving behavior stay unchanged.
+The public frontend and API are separate Vercel projects. `web/vercel.json` forwards `/api/*` to `https://nextmusic-api.vercel.app/api/*`, so browser requests remain same-origin.
 
-| Vercel setting | Frontend | Backend |
+| Setting | Frontend | Backend |
 | --- | --- | --- |
 | Root Directory | `web` | `server` |
-| Framework Preset | Vite | Other |
-| Build Command | `npm run build` | Empty (no build command) |
-| Output Directory | `dist` | Default; remove any `dist` override |
+| Framework | Vite | Other |
+| Build Command | `npm run build` | Empty |
+| Output Directory | `dist` | Default |
 | Node.js | 22.x | 22.x |
 
-Keep **Include source files outside of the Root Directory in the Build Step** enabled
-for both projects: their TypeScript settings extend the root configuration. Install
-all workspace dependencies, including development dependencies used for the build.
-Commit and push the changes, then redeploy the backend first and frontend second.
-If the dashboard has old build/output overrides, clear them as shown above.
+Enable **Include source files outside of the Root Directory** for both projects because their TypeScript settings extend the root configuration. Install build-time dependencies as well as runtime dependencies.
 
-- `server/api/index.ts` exports the shared app as a Vercel Node function.
-- Server TypeScript output rewrites relative `.ts` imports to `.js`, matching the files
-  packaged by Vercel. Local development continues to run the original TypeScript.
-- `server/vercel.json` disables Express framework autodetection, routes `/api/*` to
-  that function and redirects the backend homepage to `/api/health`.
-- `web/vercel.json` forwards `/api/*` to `https://nextmusic-api.vercel.app/api/*`.
-  Browser requests remain same-origin, so no cross-origin API URL or CORS middleware is needed.
-
-
+The backend adapter exports the existing Express app without starting a local listener. TypeScript rewrites relative `.ts` imports to `.js` during emission so imports match the packaged files. Local development still executes the original TypeScript. Deploy the backend first, then the frontend.
 
 ```sh
 curl https://nextmusic-api.vercel.app/api/health
-curl https://next-music-search.vercel.app/api/health
 curl 'https://next-music-search.vercel.app/api/search?term=Adele'
 ```
 
+Health returns `{"status":"ok","service":"nextmusic"}`. It checks the Express process, not Apple's availability. On a conventional Node host, use the root build/start commands to serve both frontend and API in one process.
 
-For a conventional Node host, run `npm ci`, `npm run build` and `npm start` from the
-repository root. Express then serves both the frontend and API; set `PORT` if required.
+## Boundaries and trade-offs
 
-- [x] Search artists, albums and songs through iTunes.
-- [x] Display matching results and explicit no-results feedback.
-- [x] Show ten initially and reveal another ten on scroll.
-- [x] React, TypeScript, Redux and Redux Thunk.
-- [x] Node.js + Express static serving.
-- [x] Meaningful automated unit and endpoint tests.
+- The combined Apple request uses `limit=50`, but multiple entities can yield more than fifty total records. Counts describe the fetched selection, not an exhaustive catalogue total.
+- Artwork and preview availability vary by record and country. Missing images have fallbacks; a preview control appears only when Apple supplies a URL. Previews are short clips, not full-track streaming.
+- Featured artwork depends on a live query. External API, image and font timing can affect loading; a Lighthouse score is not a guarantee for every visit.
+- Artist and album cards coexist with song rows. All three are rendered as semantic lists, with different layouts suited to their metadata.
+- Suggestions are predefined search terms, not generated search results. Production requests never fall back to mock catalogue data.
 
-
+Music data, artwork and audio previews are provided by Apple iTunes.

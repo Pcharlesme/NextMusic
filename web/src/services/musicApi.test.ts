@@ -50,16 +50,16 @@ describe("searchMusic", () => {
     expect(url.searchParams.get("term")).toBe("Adele & friends");
   });
 
-  it("normalizes each result type and orders artists, albums, then songs", async () => {
+  it("normalizes each result type and orders artists, songs, then albums", async () => {
     respond([
       song,
       { wrapperType: "collection", collectionId: 1, collectionName: "25", artistName: "Adele", releaseDate: "2015-11-20T08:00:00Z" },
       { wrapperType: "artist", artistId: 1, artistName: "Adele", artistLinkUrl: "https://music.apple.com/gb/artist/adele/262836961" },
     ]);
     const results = await searchMusic("Adele");
-    expect(results.map((item) => item.id)).toEqual(["artist:1", "album:1", `song:${song.trackId}`]);
-    expect(results[1].detail).toBe("2015");
-    expect(results[2]).toMatchObject({
+    expect(results.map((item) => item.id)).toEqual(["artist:1", `song:${song.trackId}`, "album:1"]);
+    expect(results[2].detail).toBe("2015");
+    expect(results[1]).toMatchObject({
       title: "Hello",
       artist: "Adele",
       detail: "4:55",

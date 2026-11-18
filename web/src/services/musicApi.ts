@@ -1,7 +1,7 @@
 import type { MusicItem, MusicKind } from "../features/search/types";
 
 const REQUEST_TIMEOUT_MS = 15_000;
-const kindOrder: Record<MusicKind, number> = { artist: 0, album: 1, song: 2 };
+const kindOrder: Record<MusicKind, number> = { artist: 0, song: 1, album: 2 };
 
 function text(value: unknown) {
   return typeof value === "string" ? value : "";
