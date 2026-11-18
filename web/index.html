@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="Discover artists, albums and songs with NextMusic. Search the iTunes catalogue, explore matching results and listen to available audio previews." />
+    <!-- ===== Initial Page Spacing ===== -->
+    <style>
+      :root { --header-height: 72px; }
+      body { margin: 0; padding-top: var(--header-height); }
+      @media (max-width: 600px) { :root { --header-height: 64px; } }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://is1-ssl.mzstatic.com" />

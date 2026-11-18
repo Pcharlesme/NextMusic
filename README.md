@@ -111,6 +111,10 @@ Components submit queries and render state. `musicApi.ts` handles browser reques
 
 **Delivery without a separate infrastructure layer.** Express compresses eligible responses. Content-versioned JavaScript and CSS receive immutable caching; HTML and unversioned assets remain revalidatable. The optional player loads separately from the initial application bundle.
 
+**A lighter search field.** The form uses MUI's `OutlinedInput` directly rather than `TextField`, keeping unused select and menu controls out of the bundle. The main JavaScript build fell from 530.58 kB to 478.90 kB (169.45 kB to 154.67 kB gzip). Its layout and keyboard behavior are unchanged; no extra loading boundary or dependency is needed.
+
+**Stable startup spacing.** The HTML reserves the header's space before React loads. A local Arial fallback approximates Inter's dimensions while the web font downloads, reducing movement without hiding text or changing the final typeface.
+
 ## Project layout
 
 ```text
@@ -172,8 +176,10 @@ Health returns `{"status":"ok","service":"nextmusic"}`. It checks the Express pr
 - A popular query can return 60 matches: a live Adele request returned 50 songs, four artists and six albums. That is Apple's response, not a fixed application count. An unmatched query returns zero. The page reveals ten returned matches at a time; scrolling does not request another catalogue page.
 - Artwork and preview availability vary by record and country. Missing images have fallbacks; a preview control appears only when Apple supplies a URL. Previews are short clips, not full-track streaming.
 - Featured artwork depends on a live query. External API, image and font timing can affect loading; a Lighthouse score is not a guarantee for every visit.
-- Clean Chrome audits on 18 November 2026 measured the deployed site at 92, 92 and 94 for mobile performance, with Accessibility, Best Practices and SEO at 100. Local before/after runs both had a median of 86; the image priority change did not produce a measurable score increase. An API preload experiment was also removed after failing to improve the score. The main featured cover receives high image priority; explicit image dimensions preserve its aspect ratio before it loads.
+- Clean local mobile audits after the spacing and font fixes scored 88, 88 and 85, with zero measured layout shift in all three runs. Accessibility, Best Practices and SEO were 100. Earlier hosted audits scored 92, 92 and 94; those are a different environment, not a direct before/after comparison. The updated build has not been verified on Vercel.
 - Artist and album cards coexist with song rows. All three are rendered as semantic lists, with different layouts suited to their metadata.
 - Suggestions are predefined search terms, not generated search results. Production requests never fall back to mock catalogue data.
+
+To change how much data is fetched, edit `limit: "50"` in [server/index.ts](server/index.ts) and redeploy the backend. Apple's [documented range](https://performance-partners.apple.com/search-api) is 1–200. In a live Adele check, `limit=10` returned 12 combined records and `limit=100` returned 110, confirming that sixty is not a fixed cap. Keep `PAGE_SIZE = 10` in [searchSlice.ts](web/src/features/search/searchSlice.ts) to preserve ten-at-a-time display. A larger request increases the payload and can slow searches; it does not provide access to the entire catalogue.
 
 Music data, artwork and audio previews are provided by Apple iTunes.

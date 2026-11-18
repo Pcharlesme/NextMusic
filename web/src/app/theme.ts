@@ -10,7 +10,7 @@ export const theme = createTheme({
   },
   shape: { borderRadius: 8 },
   typography: {
-    fontFamily: '"Inter", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif',
+    fontFamily: '"Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif',
     h1: { fontWeight: 800, letterSpacing: "-0.045em" },
     h2: { fontWeight: 700, letterSpacing: "-0.03em" },
     h3: { fontWeight: 700, letterSpacing: "-0.02em" },

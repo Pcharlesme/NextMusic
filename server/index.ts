@@ -21,7 +21,7 @@ export function createApp({ fetcher = fetch, timeoutMs = 10_000, staticDirectory
       return;
     }
 
-    const params = new URLSearchParams({ term, media: "music", entity: "musicArtist,album,song", country: "gb", limit: "50" });
+    const params = new URLSearchParams({ term, media: "music", entity: "musicArtist,album,song", country: "gb", limit: "100" });
     try {
       const response = await fetcher(`https://itunes.apple.com/search?${params}`, { signal: AbortSignal.timeout(timeoutMs) });
       if (!response.ok) throw new Error(`iTunes responded with ${response.status}`);

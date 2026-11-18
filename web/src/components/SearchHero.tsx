@@ -5,7 +5,7 @@ import Container from "@mui/material/Container";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
+import OutlinedInput from "@mui/material/OutlinedInput";
 import Typography from "@mui/material/Typography";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import CloseRounded from "@mui/icons-material/CloseRounded";
@@ -72,6 +72,8 @@ export function SearchHero({ onSearch, onPreview, playingId, loading }: Props) {
     document.getElementById("music-query")?.focus();
   };
 
+  // ===== Search Input =====
+  // OutlinedInput avoids bundling TextField's unused select controls.
   return (
     <Box component="section" className="landing" aria-labelledby="landing-title">
       <Container maxWidth="xl">
@@ -88,7 +90,7 @@ export function SearchHero({ onSearch, onPreview, playingId, loading }: Props) {
                 Search music
               </Typography>
               <Stack direction="row" alignItems="center" className="search-shell">
-                <TextField
+                <OutlinedInput
                   id="music-query"
                   fullWidth
                   placeholder="Search artists, albums or songs..."
@@ -96,23 +98,23 @@ export function SearchHero({ onSearch, onPreview, playingId, loading }: Props) {
                   onChange={(event) => setValue(event.target.value)}
                   size="small"
                   slotProps={{
-                    htmlInput: { maxLength: 200, enterKeyHint: "search", autoComplete: "off" },
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchRounded aria-hidden="true" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: value && (
-                        <InputAdornment position="end">
-                          <IconButton aria-label="Clear search" onClick={clear} edge="end" size="small">
-                            <CloseRounded fontSize="small" />
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    },
+                    input: { maxLength: 200, enterKeyHint: "search", autoComplete: "off" },
                   }}
-                  sx={{ minWidth: 0, "& fieldset": { border: 0 }, "& .MuiInputBase-root": { fontSize: { xs: 16, sm: 17 }, minHeight: 56 } }}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <SearchRounded aria-hidden="true" />
+                    </InputAdornment>
+                  }
+                  endAdornment={
+                    value && (
+                      <InputAdornment position="end">
+                        <IconButton aria-label="Clear search" onClick={clear} edge="end" size="small">
+                          <CloseRounded fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }
+                  sx={{ minWidth: 0, "& fieldset": { border: 0 }, fontSize: { xs: 16, sm: 17 }, minHeight: 56 }}
                 />
                 <Button
                   type="submit"

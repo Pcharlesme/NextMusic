@@ -1,5 +1,24 @@
+/* ===== Inter Fallback =====
+   Match the local Arial faces to Inter's measured text width and vertical metrics. */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("ArialMT");
+  font-weight: 100 500;
+  size-adjust: 106.65%;
+  ascent-override: 90.83%;
+  descent-override: 22.62%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT");
+  font-weight: 600 900;
+  size-adjust: 101.55%;
+  ascent-override: 95.39%;
+  descent-override: 23.75%;
+  line-gap-override: 0%;
+}
 :root {
-  --header-height: 72px;
   --ink: #171717;
   --ink-soft: #525252;
   --ink-muted: #737373;
@@ -167,7 +186,6 @@ body:has(.player-wrap) { padding-bottom: 140px; }
   .discovery-features { grid-template-columns: 1fr; margin-top: 40px; gap: 12px; }
 }
 @media (max-width: 600px) {
-  :root { --header-height: 64px; }
   .header-inner { gap: 12px; }
   .brand-wordmark { font-size: 30px; }
   .results-section { scroll-margin-top: 76px; }
