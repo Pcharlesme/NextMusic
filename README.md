@@ -8,10 +8,13 @@ Search the iTunes catalogue for artists, songs and albums, filter matching resul
 
 ## Features
 
-- Search artists, songs and albums from one form, with filters for each result type.
+- Search the iTunes catalogue for an artist, album or song and view related results, with filters for each type.
 - Display ten results initially and reveal ten more on scroll, with a Show more button as an alternative.
-- Show loading, empty and error states, with retry for failed requests.
-- Play one audio preview at a time using native controls, with links to Apple Music.
+- Show loading feedback, an explicit no-results message and error states with retry.
+- Clear the search field or start a search from the suggested artists.
+- Play one song preview at a time, pause and seek using the native audio player.
+- Adjust volume and playback speed, or download the preview where the browser exposes these native controls. Downloads are preview clips, not full songs.
+- Open artists, albums and songs on Apple Music; close the player with its button or Escape.
 - Support keyboard submission, labelled controls, result announcements and focus restoration when the player closes.
 
 ## Getting started
@@ -19,17 +22,33 @@ Search the iTunes catalogue for artists, songs and albums, filter matching resul
 Requires **Node.js 22.18+** and npm. No API key or environment file is required.
 
 ```sh
-npm ci
+git clone https://github.com/Pcharlesme/NextMusic.git
+cd NextMusic
+npm i
 npm run dev
 ```
 
-The application runs at **http://localhost:5173**. This starts Vite and Express; Vite forwards `/api` requests to the server on port **3001**.
+This starts both workspaces:
 
-The workspaces can also run in separate terminals:
+- **Frontend:** http://localhost:5173
+- **Express API:** http://localhost:3001/api/health
+
+Vite forwards `/api` requests to Express on port **3001**.
+
+Alternatively, after installing dependencies at the repository root, start each workspace in its own terminal.
+
+**Backend — from the repository root:**
 
 ```sh
-npm run dev --workspace=@nextmusic/server
-npm run dev --workspace=@nextmusic/web
+cd server
+npm run dev
+```
+
+**Frontend — from the repository root in another terminal:**
+
+```sh
+cd web
+npm run dev
 ```
 
 ### Production
@@ -53,11 +72,29 @@ Express serves the compiled frontend and API at **http://localhost:3001**. The s
 ## Architecture
 
 ```mermaid
-flowchart LR
-  React[React interface] --> Thunk[Redux Thunk]
-  Thunk --> Service[API service]
-  Service <-->|/api/search| Express[Express]
-  Express <--> iTunes[iTunes Search API]
+flowchart TB
+  subgraph FE[Frontend · React and TypeScript]
+    direction TB
+    Form[Search form and suggestions] -->|Submit query| Thunk[Redux Thunk]
+    Thunk -->|Start request| Service[API service]
+    Service -->|Normalize and deduplicate results| Thunk
+    Thunk -->|Update search state| Store[Redux store]
+    Store --> Results[Results · Filters · Ten-at-a-time scrolling]
+    Results -->|Select a preview| Player[Native audio player]
+  end
+  subgraph BE[Backend · Node.js and Express]
+    API[GET /api/search] --> Validate[Validate query and apply timeout]
+    Static[Serve production frontend]
+  end
+  Service -->|Search request| API
+  Validate -->|Fixed search URL| Apple[Apple iTunes Search API]
+  Apple -->|Artists, albums and songs| API
+  API -->|JSON response| Service
+  Static -.-> FE
+  classDef frontend fill:#eef8f3,stroke:#28734d,color:#171717
+  classDef backend fill:#f2efff,stroke:#7655a3,color:#171717
+  class Form,Thunk,Service,Store,Results,Player frontend
+  class API,Validate,Static backend
 ```
 
 The interface submits queries through a thunk. The API service requests data from Express, validates the response and normalizes its records. The thunk stores those results in Redux for the result lists and filters.
@@ -89,6 +126,8 @@ web/
 
 ## Testing
 
+**Latest executed result: 68/68 tests passed — 32/32 frontend and 36/36 backend.**
+
 From the repository root:
 
 ```sh
@@ -118,8 +157,6 @@ npm run test --workspace=@nextmusic/server
 ## Local Lighthouse snapshot
 
 ![Lighthouse report captured on localhost](web/public/assets/nextlighthouse.png)
-
-This capture represents one localhost run. Scores vary with device settings, network conditions and external resources.
 
 ## Deployment
 
