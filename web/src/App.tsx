@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
@@ -6,12 +6,10 @@ import Typography from "@mui/material/Typography";
 import { Header } from "./components/Header";
 import { SearchHero } from "./components/SearchHero";
 import { SearchResults } from "./features/search/SearchResults";
+import { PreviewPlayer } from "./features/player/PreviewPlayer";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { runSearch } from "./features/search/searchSlice";
 import type { MusicItem } from "./features/search/types";
-
-
-const PreviewPlayer = lazy(() => import("./features/player/PreviewPlayer").then((module) => ({ default: module.PreviewPlayer })));
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -63,11 +61,7 @@ export default function App() {
           </Stack>
         </Container>
       </Box>
-      {preview && (
-        <Suspense fallback={<p role="status">Loading audio player…</p>}>
-          <PreviewPlayer item={preview} onClose={closePreview} />
-        </Suspense>
-      )}
+      {preview && <PreviewPlayer item={preview} onClose={closePreview} />}
     </Box>
   );
 }

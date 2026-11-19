@@ -5,7 +5,7 @@ import path from "node:path";
 const webDist = path.resolve(import.meta.dirname, "../web/dist");
 const ITUNES_URL = "https://itunes.apple.com/search";
 
-export function createApp() {
+export function createApp({ fetcher = fetch, timeoutMs = 10000, staticDirectory = webDist } = {}) {
   const app = express();
   app.use(compression());
 
@@ -14,7 +14,10 @@ export function createApp() {
   });
 
   app.get("/api/search", async (req, res) => {
-    const term = String(req.query.term || "").trim();
+    if (typeof req.query.term !== "string") {
+      return res.status(400).json({ error: "Provide a single search term." });
+    }
+    const term = req.query.term.trim();
 
     if (!term || term.length > 200) {
       return res.status(400).json({ error: "Search term must be between 1 and 200 characters." });
@@ -29,7 +32,7 @@ export function createApp() {
     });
 
     try {
-      const response = await fetch(`${ITUNES_URL}?${params}`, { signal: AbortSignal.timeout(10000) });
+      const response = await fetcher(`${ITUNES_URL}?${params}`, { signal: AbortSignal.timeout(timeoutMs) });
       const data = (await response.json()) as { results?: unknown[] };
 
       if (!response.ok || !Array.isArray(data.results)) {
@@ -48,7 +51,7 @@ export function createApp() {
   });
 
   app.use(
-    express.static(webDist, {
+    express.static(staticDirectory, {
       setHeaders(res, filePath) {
         if (/-[\w-]{8,}\.(js|css)$/.test(filePath)) {
           res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
@@ -59,7 +62,7 @@ export function createApp() {
 
   app.get("/{*route}", (req, res, next) => {
     if (path.extname(req.path)) return next();
-    res.sendFile(path.join(webDist, "index.html"));
+    res.sendFile(path.join(staticDirectory, "index.html"));
   });
 
   return app;

@@ -57,7 +57,7 @@ flowchart LR
 - **API boundary:** Express validates queries, contacts a fixed Apple endpoint and applies an upstream timeout. The frontend service validates responses and normalizes artists, albums and songs into one model with stable, type-prefixed IDs.
 - **Search state:** Redux holds the submitted query, results, request status and visible count. New searches cancel the previous request; request IDs prevent stale responses from replacing newer results. Empty responses and request failures have separate states.
 - **Result visibility:** ten items appear initially, with ten more revealed on scroll or through Show more. Filters reset visibility to ten. Artists appear first, followed by songs and albums, with available artwork first within each type.
-- **Interaction:** the search form supports Enter, results use semantic lists, and loading/result updates are announced. The fixed header has a skip link. A shared, lazy-loaded player uses native audio controls and restores focus when closed.
+- **Interaction:** the search form supports Enter, results use semantic lists, and loading/result updates are announced. The fixed header has a skip link. A shared player uses native audio controls and restores focus when closed.
 - **Delivery:** Express compresses responses and caches versioned assets. Header space is reserved before React loads, and a local font fallback reduces movement while Inter downloads.
 
 ```text
@@ -84,7 +84,7 @@ npm test
 npm run build
 ```
 
-The tests cover response normalization, cancellation, timeouts, stale requests, ten-at-a-time visibility, empty/error states, query validation, static serving, compression, caching and the Vercel adapter. Apple responses are mocked; Express tests exercise real HTTP endpoints on temporary local ports.
+Service tests cover response normalization, request cancellation, timeouts and failures. Redux reducer tests cover state transitions, stale responses, empty/error states and ten-at-a-time visibility. Backend tests cover query validation, mocked upstream responses and failures, static serving, compression, caching and the Vercel adapter. Express tests use temporary local HTTP ports and static fixtures; they do not require a prior frontend build or Apple's availability.
 
 ESLint checks both workspaces and tests, including React hook usage and dependencies. Prettier handles formatting separately. There is no committed automated browser suite. Vite's standalone preview does not provide the backend API.
 
